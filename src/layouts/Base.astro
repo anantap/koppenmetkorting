@@ -1,0 +1,42 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Vergelijk de prijs per opzetborstel van elektrische tandenborstels.' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="title" href="/">Koppen met Korting</a>
+      <nav>
+        <a href="/">Alle koppen</a>
+        <a href="/merk/oral-b/">Oral-B</a>
+        <a href="/merk/philips-sonicare/">Philips Sonicare</a>
+        <a href="/merk/jordan/">Jordan</a>
+        <a href="/merk/generiek/">Generiek</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>
+        Koppen met Korting vergelijkt prijzen van opzetborstels via affiliate-links.
+        Wij kunnen een commissie ontvangen als je via deze site iets koopt — dit
+        beinvloedt de getoonde prijzen niet.
+      </p>
+    </footer>
+  </body>
+</html>

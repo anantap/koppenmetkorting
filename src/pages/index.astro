@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import ProductTable from '../components/ProductTable.astro';
+import { rankedGroups, flaggedGroups, meta } from '../lib/data.js';
+
+const ranked = rankedGroups();
+const flagged = flaggedGroups();
+---
+
+<Base title="Koppen met Korting — vergelijk prijs per opzetborstel">
+  <h1>Koppen met Korting</h1>
+  <p class="muted">
+    {meta.totalGroups} unieke opzetborstels, verzameld uit {meta.sources.length} bronnen.
+    Laatst bijgewerkt: {new Date(meta.generatedAt).toLocaleDateString('nl-NL')}.
+  </p>
+
+  <section class="explainer">
+    <h2>Hoe werkt prijs per kop?</h2>
+    <p>
+      Opzetborstels worden los, in duo's, of in grote multipacks verkocht. Een
+      hoge totaalprijs kan toch de goedkoopste optie zijn als de verpakking
+      veel koppen bevat. Daarom rekenen we elke aanbieding om naar de
+      <strong>prijs per opzetborstel</strong> (prijs gedeeld door het aantal
+      koppen in de verpakking) en sorteren we daarop. Zo vergelijk je
+      appels met appels, ongeacht de pakgrootte.
+    </p>
+  </section>
+
+  <ProductTable groups={ranked} />
+
+  {flagged.length > 0 && (
+    <p class="flagged-note">
+      {flagged.length} aanbieding(en) zijn uitgesloten van de ranking omdat het
+      aantal koppen niet betrouwbaar uit de titel of feed te bepalen was.
+    </p>
+  )}
+</Base>

@@ -1,0 +1,116 @@
+---
+import type { ProductGroup } from '../lib/types.js';
+import { groupSlug } from '../lib/data.js';
+
+interface Props {
+  groups: ProductGroup[];
+}
+
+const { groups } = Astro.props;
+---
+
+<div class="filters" data-product-filters>
+  <label>
+    Merk:
+    <select data-filter="brand">
+      <option value="">Alle merken</option>
+      {[...new Set(groups.map((g) => g.brand))].sort().map((brand) => (
+        <option value={brand}>{brand}</option>
+      ))}
+    </select>
+  </label>
+  <label>
+    Type aansluiting:
+    <select data-filter="fitType">
+      <option value="">Alle types</option>
+      {[...new Set(groups.map((g) => g.fitType))].sort().map((fitType) => (
+        <option value={fitType}>{fitType}</option>
+      ))}
+    </select>
+  </label>
+  <button type="button" data-sort-toggle>Sorteer: prijs per kop ↑</button>
+</div>
+
+<table class="product-table" data-product-table>
+  <thead>
+    <tr>
+      <th>Merk</th>
+      <th>Titel</th>
+      <th>Pakgrootte</th>
+      <th>Prijs</th>
+      <th>Prijs per kop</th>
+      <th>Winkel</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {groups.map((group) => {
+      const cheapest = group.cheapest!;
+      return (
+        <tr
+          data-brand={group.brand}
+          data-fittype={group.fitType}
+          data-pph={cheapest.pricePerHead}
+        >
+          <td>{group.brand}</td>
+          <td>
+            <a href={`/product/${groupSlug(group.groupId)}/`}>
+              {group.title}
+            </a>
+            {' '}
+            <span class={`tag ${group.isOEM ? 'oem' : 'compatible'}`}>
+              {group.isOEM ? 'Origineel' : 'Compatible'}
+            </span>
+          </td>
+          <td>{group.packSize}</td>
+          <td>&euro;{cheapest.price.toFixed(2)}</td>
+          <td class="pph">&euro;{cheapest.pricePerHead!.toFixed(2)}</td>
+          <td>{cheapest.shop}</td>
+          <td><a class="btn" href={cheapest.url} rel="sponsored nofollow" target="_blank">Bekijk bij winkel</a></td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
+
+<script>
+  const table = document.querySelector('[data-product-table]');
+  const tbody = table?.querySelector('tbody');
+  const brandFilter = document.querySelector<HTMLSelectElement>('[data-filter="brand"]');
+  const fitTypeFilter = document.querySelector<HTMLSelectElement>('[data-filter="fitType"]');
+  const sortToggle = document.querySelector<HTMLButtonElement>('[data-sort-toggle]');
+
+  let ascending = true;
+
+  function applyFilters() {
+    if (!tbody) return;
+    const brand = brandFilter?.value ?? '';
+    const fitType = fitTypeFilter?.value ?? '';
+    for (const row of tbody.querySelectorAll('tr')) {
+      const matchesBrand = !brand || row.getAttribute('data-brand') === brand;
+      const matchesFitType = !fitType || row.getAttribute('data-fittype') === fitType;
+      (row as HTMLElement).style.display = matchesBrand && matchesFitType ? '' : 'none';
+    }
+  }
+
+  function applySort() {
+    if (!tbody) return;
+    const rows = [...tbody.querySelectorAll('tr')];
+    rows.sort((a, b) => {
+      const pphA = parseFloat(a.getAttribute('data-pph') ?? '0');
+      const pphB = parseFloat(b.getAttribute('data-pph') ?? '0');
+      return ascending ? pphA - pphB : pphB - pphA;
+    });
+    rows.forEach((row) => tbody.appendChild(row));
+  }
+
+  brandFilter?.addEventListener('change', applyFilters);
+  fitTypeFilter?.addEventListener('change', applyFilters);
+  sortToggle?.addEventListener('click', () => {
+    ascending = !ascending;
+    if (sortToggle) {
+      sortToggle.textContent = `Sorteer: prijs per kop ${ascending ? '↑' : '↓'}`;
+    }
+    applySort();
+  });
+</script>

@@ -1,0 +1,22 @@
+---
+import Base from '../../../layouts/Base.astro';
+import ProductTable from '../../../components/ProductTable.astro';
+import { rankedGroups, allBrands, slugify } from '../../../lib/data.js';
+
+export function getStaticPaths() {
+  return allBrands().map((brand) => ({
+    params: { brand: slugify(brand) },
+    props: { brand },
+  }));
+}
+
+const { brand } = Astro.props as { brand: string };
+const groups = rankedGroups().filter((g) => g.brand === brand);
+---
+
+<Base title={`${brand} opzetborstels — Koppen met Korting`}>
+  <p><a href="/">&larr; Alle koppen</a></p>
+  <h1>{brand} opzetborstels</h1>
+  <p class="muted">{groups.length} aanbieding(en) gevonden voor {brand}.</p>
+  <ProductTable groups={groups} />
+</Base>

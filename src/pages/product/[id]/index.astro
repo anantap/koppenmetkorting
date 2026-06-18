@@ -1,0 +1,67 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { groups, groupSlug } from '../../../lib/data.js';
+
+export function getStaticPaths() {
+  return groups.map((group) => ({
+    params: { id: groupSlug(group.groupId) },
+    props: { group },
+  }));
+}
+
+const { group } = Astro.props as { group: (typeof groups)[number] };
+---
+
+<Base title={`${group.title} — Koppen met Korting`}>
+  <p><a href="/">&larr; Alle koppen</a></p>
+  <h1>{group.title}</h1>
+  <p>
+    <span class="tag">{group.brand}</span>
+    <span class="tag">{group.fitType}</span>
+    <span class={`tag ${group.isOEM ? 'oem' : 'compatible'}`}>
+      {group.isOEM ? 'Origineel (OEM)' : 'Compatible'}
+    </span>
+    <span class="tag">Pakgrootte: {group.packSize ?? 'onbekend'}</span>
+  </p>
+
+  {group.cheapest ? (
+    <p>
+      Goedkoopste prijs per kop: <strong>&euro;{group.cheapest.pricePerHead!.toFixed(2)}</strong>
+      bij {group.cheapest.shop}.
+    </p>
+  ) : (
+    <p class="flagged-note">
+      De pakgrootte van dit product kon niet betrouwbaar bepaald worden, dus
+      tonen we geen prijs-per-kop-ranking.
+    </p>
+  )}
+
+  <table class="product-table">
+    <thead>
+      <tr>
+        <th>Winkel</th>
+        <th>Titel</th>
+        <th>Prijs</th>
+        <th>Prijs per kop</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {group.listings.map((listing) => (
+        <tr class={listing === group.cheapest ? 'cheapest-row' : ''}>
+          <td>{listing.shop}</td>
+          <td>{listing.title}</td>
+          <td>&euro;{listing.price.toFixed(2)}</td>
+          <td class="pph">
+            {listing.pricePerHead !== null ? `€${listing.pricePerHead.toFixed(2)}` : '—'}
+          </td>
+          <td>
+            <a class="btn" href={listing.url} rel="sponsored nofollow" target="_blank">
+              Bekijk bij winkel
+            </a>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</Base>
