@@ -1,0 +1,59 @@
+name: Refresh productdata
+
+# Optie (a) uit README/SETUP: periodiek de affiliate-feeds ophalen,
+# src/data/products.json regenereren, en bij wijzigingen committen + pushen.
+# Cloudflare Pages pikt de push vanzelf op en deployt opnieuw (build command
+# `npm run build`, output dir `dist`).
+#
+# LET OP: de Bol FTP-feed vereist doorgaans een gewhitelist vast IP. GitHub
+# Actions-runners hebben GEEN vast IP, dus als je de Bol FTP-feed gebruikt
+# werkt deze workflow niet voor die bron -- gebruik dan optie (b) (lokale
+# cron/systemd-timer, zie SETUP.md en scripts/refresh.sh /
+# deploy/koppenmetkorting-refresh.{service,timer}). De Bol Marketing API
+# (OAuth client credentials) heeft dit IP-probleem niet en werkt hier wel.
+# Drogist-feeds via TradeTracker/Daisycon/Awin werken in de regel ook zonder
+# IP-whitelist en zijn dus geschikt voor deze workflow.
+
+on:
+  schedule:
+    # Elke dag om 04:00 UTC (06:00 NL-tijd in de zomer). Pas aan naar wens.
+    - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Build productdata vanuit live feeds
+        env:
+          # Zet deze secrets in Settings -> Secrets and variables -> Actions.
+          # Leeg laten = build valt terug op de sample-CSV's in data/sample/.
+          BOL_CLIENT_ID: ${{ secrets.BOL_CLIENT_ID }}
+          BOL_CLIENT_SECRET: ${{ secrets.BOL_CLIENT_SECRET }}
+          BOL_SITE_ID: ${{ secrets.BOL_SITE_ID }}
+          BOL_FEED_PATH: ${{ secrets.BOL_FEED_PATH }}
+          FEED_DROGIST_URL: ${{ secrets.FEED_DROGIST_URL }}
+          FEED_DROGIST_SUBID: ${{ secrets.FEED_DROGIST_SUBID }}
+        run: npm run build:data
+
+      - name: Commit en push als de data gewijzigd is
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- src/data; then
+            echo "Geen wijzigingen in productdata."
+            exit 0
+          fi
+          git add src/data/products.json src/data/meta.json
+          git commit -m "chore: refresh productdata"
+          git push

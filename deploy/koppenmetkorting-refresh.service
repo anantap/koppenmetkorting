@@ -1,0 +1,11 @@
+[Unit]
+Description=Koppen met Korting - productdata refresh
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Pas het pad en de gebruiker aan naar jouw thuis-PC-stick.
+User=koppenmetkorting
+WorkingDirectory=/home/koppenmetkorting/koppenmetkorting
+ExecStart=/home/koppenmetkorting/koppenmetkorting/scripts/refresh.sh
