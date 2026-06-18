@@ -1,0 +1,24 @@
+{
+  "name": "koppenmetkorting",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:data": "tsx scripts/build-data.ts",
+    "dev": "astro dev",
+    "build": "npm run build:data && astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.16.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^25.9.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

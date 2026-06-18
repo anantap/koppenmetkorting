@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+.astro/
+.DS_Store
+
+# src/data/products.json en meta.json worden WEL gecommit: de refresh-
+# pipeline (GitHub Actions / lokale cron) regenereert ze en commit+pusht het
+# resultaat zodat Cloudflare Pages een nieuwe deploy triggert. Zie README.md.
