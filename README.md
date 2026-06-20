@@ -90,36 +90,17 @@ triggert om opnieuw te deployen.
 
 ## Productdata verversen (live feeds)
 
-Er zijn twee manieren om de site periodiek te verversen met echte data.
-Beide regenereren `src/data/products.json` en pushen de wijziging, waarna
-Cloudflare Pages automatisch een nieuwe deploy triggert.
-
-### Optie A -- GitHub Actions cron
-
 `.github/workflows/refresh-data.yml`: draait dagelijks (cron) of handmatig
 (`workflow_dispatch`), leest secrets uit GitHub Settings, draait
-`npm run build:data`, en commit + pusht als er iets gewijzigd is.
+`npm run build:data`, en commit + pusht `src/data/products.json`/`meta.json`
+als er iets gewijzigd is. Cloudflare Pages pikt die push vanzelf op en
+deployt opnieuw.
 
-Geschikt voor feeds die over een gewone HTTPS-URL bereikbaar zijn (de
-Bol Marketing API via OAuth, of de meeste TradeTracker/Daisycon/Awin-feeds).
-**Niet** geschikt voor de Bol FTP-feed: die vereist een gewhitelist vast IP,
-en GitHub Actions-runners hebben geen vast IP.
-
-### Optie B -- lokale cron/systemd-timer (thuis-PC-stick)
-
-`scripts/refresh.sh` + `deploy/koppenmetkorting-refresh.{service,timer}`:
-draait op een machine met een vast (of door Bol gewhitelist) IP, haalt de
-Bol FTP-feed op, regenereert de data, en commit + pusht.
-
-```bash
-sudo cp deploy/koppenmetkorting-refresh.service /etc/systemd/system/
-sudo cp deploy/koppenmetkorting-refresh.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now koppenmetkorting-refresh.timer
-```
-
-Pas paden/gebruiker in de `.service`-file aan naar jouw setup. Zie
-`scripts/refresh.sh` voor de TODO's rond de echte FTP-download.
+Geschikt voor alle feeds in dit project: de Bol Marketing API (OAuth over
+HTTPS) en de TradeTracker/Daisycon/Awin-feeds van de drogisterijen werken
+allemaal zonder vast IP. (Bol biedt de productfeed ook via FTP aan, maar
+dat vereist een gewhitelist vast IP-adres -- niet geschikt voor GitHub
+Actions-runners, dus gebruik de Marketing API in plaats daarvan.)
 
 Zie **SETUP.md** voor de volledige, stap-voor-stap-instructies (accounts
 aanmaken, secrets plaatsen, Cloudflare Pages koppelen).

@@ -16,25 +16,20 @@ die je nodig hebt om de site überhaupt live te zetten.
 
 ## 2. Bol productfeed-toegang regelen
 
-Je hebt twee opties (de adapter in `src/adapters/bol.ts` leest in beide
-gevallen gewoon een CSV-bestand of URL, dus dit bepaalt alleen hoe dat
-bestand bij je komt):
+De adapter in `src/adapters/bol.ts` leest gewoon een CSV-bestand of URL,
+dus dit bepaalt alleen hoe dat bestand bij je komt.
 
-**Optie A — Marketing API (aanbevolen, geen IP-whitelist nodig)**
+**Marketing API (geen IP-whitelist nodig, werkt met GitHub Actions)**
 1. Gebruik de OAuth client credentials uit stap 1 om een feed/export te
    downloaden via de Marketing Catalog API.
 2. Zet de gedownloade CSV ergens neer (lokaal pad, of een URL die je zelf
    host) en wijs `BOL_FEED_PATH` daar naartoe.
 
-**Optie B — FTP-productfeed (vereist vast IP)**
-1. Vraag bij Bol de FTP-toegang voor de productfeed aan.
-2. Bol vraagt om een vast IP-adres te whitelisten. Gebruik hiervoor het
-   (vaste of statisch toegewezen) IP van je thuis-PC-stick -- **niet** een
-   GitHub Actions-runner, die heeft geen vast IP.
-3. Noteer host/gebruikersnaam/wachtwoord voor `BOL_FTP_HOST`,
-   `BOL_FTP_USER`, `BOL_FTP_PASSWORD`.
-4. Gebruik in dat geval optie B (lokale cron/systemd-timer) voor de refresh,
-   zie stap 8.
+Bol biedt de productfeed ook via FTP aan, maar dat vereist een
+gewhitelist vast IP-adres -- niet geschikt voor GitHub Actions-runners
+of Cloudflare's build-runners (geen vaste IP's), en dit project heeft
+geen machine met een vast IP om dat te draaien. Gebruik daarom de
+Marketing API.
 
 ## 3. Affiliate-netwerk-feeds voor drogisterijen (Kruidvat, Etos, ...)
 
@@ -87,11 +82,7 @@ terug op sample-data voor die bron). `.env` wordt nooit gecommit.
 4. Voeg environment variables toe (Settings -> Environment variables),
    dezelfde namen als in `.env.example`: `BOL_SITE_ID`, `BOL_FEED_PATH`
    (of laat leeg voor sample-data), `FEED_DROGIST_URL`,
-   `FEED_DROGIST_SUBID`, etc. **Nooit** `BOL_CLIENT_SECRET` of
-   FTP-wachtwoorden hier zetten als je de FTP-route gebruikt -- Cloudflare's
-   build-runners hebben geen vast IP, dus FTP-fetch tijdens de Cloudflare
-   build werkt niet. Gebruik in dat geval optie B (stap 8) om
-   `src/data/products.json` al gevuld te laten zijn vóór Cloudflare bouwt.
+   `FEED_DROGIST_SUBID`, etc.
 5. Deploy. Cloudflare geeft je een `*.pages.dev`-domein; koppel later een
    eigen domein via Settings -> Custom domains.
 
@@ -99,10 +90,9 @@ terug op sample-data voor die bron). `.env` wordt nooit gecommit.
 
 | Secret | Lokale build (`.env`) | GitHub Actions (Settings -> Secrets) | Cloudflare Pages (env vars) |
 |---|---|---|---|
-| `BOL_CLIENT_ID` / `BOL_CLIENT_SECRET` | ja | ja (als je optie A gebruikt) | alleen als je de Marketing API rechtstreeks vanuit de Cloudflare build wilt aanroepen (niet nodig als `BOL_FEED_PATH` al naar een gecommit bestand wijst) |
+| `BOL_CLIENT_ID` / `BOL_CLIENT_SECRET` | ja | ja | alleen als je de Marketing API rechtstreeks vanuit de Cloudflare build wilt aanroepen (niet nodig als `BOL_FEED_PATH` al naar een gecommit bestand wijst) |
 | `BOL_SITE_ID` | ja | ja | ja (nodig voor affiliate-links in elke build) |
-| `BOL_FTP_HOST/USER/PASSWORD` | ja | nee (geen vast IP) | nee (geen vast IP) |
-| `BOL_FEED_PATH` | optioneel | optioneel | optioneel -- wijs naar een gecommit live-feed-bestand als je optie B gebruikt |
+| `BOL_FEED_PATH` | optioneel | optioneel | optioneel -- wijs naar een gecommit live-feed-bestand |
 | `FEED_DROGIST_URL` / `_SUBID` | ja | ja | ja |
 | `AMAZON_*` | later | later | later |
 
@@ -117,12 +107,6 @@ terug op sample-data voor die bron). `.env` wordt nooit gecommit.
    ```
 3. Check `src/data/meta.json` -- `sources` en `totalListings` moeten
    overeenkomen met je echte feeds, niet meer met de sample-aantallen.
-4. Gebruik je de Bol FTP-route? Zet dan `scripts/refresh.sh` en
-   `deploy/koppenmetkorting-refresh.{service,timer}` op je thuis-PC-stick
-   (zie README.md "Optie B"). Dat script haalt de FTP-feed op, regenereert
-   de data, en commit + pusht -- waarna Cloudflare automatisch opnieuw
-   deployt.
-5. Gebruik je alleen HTTP(S)-feeds (Marketing API + affiliate-netwerken)?
-   Dan is `.github/workflows/refresh-data.yml` (GitHub Actions cron)
-   voldoende; zet de bijbehorende secrets in GitHub Settings -> Secrets and
-   variables -> Actions.
+4. Zet de bijbehorende secrets in GitHub Settings -> Secrets and variables
+   -> Actions, zodat `.github/workflows/refresh-data.yml` (de dagelijkse
+   cron) de live feeds kan ophalen en automatisch committen + pushen.

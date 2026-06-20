@@ -1,18 +1,15 @@
 name: Refresh productdata
 
-# Optie (a) uit README/SETUP: periodiek de affiliate-feeds ophalen,
-# src/data/products.json regenereren, en bij wijzigingen committen + pushen.
-# Cloudflare Pages pikt de push vanzelf op en deployt opnieuw (build command
-# `npm run build`, output dir `dist`).
+# Periodiek de affiliate-feeds ophalen, src/data/products.json regenereren,
+# en bij wijzigingen committen + pushen. Cloudflare Pages pikt de push
+# vanzelf op en deployt opnieuw (build command `npm run build`, output dir
+# `dist`).
 #
-# LET OP: de Bol FTP-feed vereist doorgaans een gewhitelist vast IP. GitHub
-# Actions-runners hebben GEEN vast IP, dus als je de Bol FTP-feed gebruikt
-# werkt deze workflow niet voor die bron -- gebruik dan optie (b) (lokale
-# cron/systemd-timer, zie SETUP.md en scripts/refresh.sh /
-# deploy/koppenmetkorting-refresh.{service,timer}). De Bol Marketing API
-# (OAuth client credentials) heeft dit IP-probleem niet en werkt hier wel.
-# Drogist-feeds via TradeTracker/Daisycon/Awin werken in de regel ook zonder
-# IP-whitelist en zijn dus geschikt voor deze workflow.
+# Gebruikt de Bol Marketing API (OAuth client credentials, via BOL_FEED_PATH)
+# en de drogist-feeds via TradeTracker/Daisycon/Awin -- die werken allemaal
+# over een gewone HTTPS-URL, geen vast IP nodig. (Bol biedt de productfeed
+# ook via FTP aan, maar dat vereist een gewhitelist vast IP-adres dat hier
+# niet beschikbaar is, dus gebruik de Marketing API.)
 
 on:
   schedule:

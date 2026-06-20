@@ -111,6 +111,20 @@ de verwachte schaal van een paar honderd tot een paar duizend opzetborstel-
 listings per feed zou dit geen probleem moeten zijn, maar bij twijfel
 even profilen voordat je een feed met >50k rijen erdoorheen haalt.
 
+## Bol FTP-route en lokale cron/systemd-timer verwijderd
+
+Oorspronkelijk had dit project een tweede refresh-route (`scripts/refresh.sh`
++ `deploy/koppenmetkorting-refresh.{service,timer}`) voor de Bol FTP-feed,
+bedoeld om te draaien op een machine met een vast IP (een "thuis-PC-stick")
+omdat FTP-toegang bij Bol een gewhitelist vast IP vereist. Die machine
+draait niet meer, dus deze route is verwijderd (`BOL_FTP_HOST/USER/PASSWORD`
+uit `.env.example`, de systemd-units, en de bijbehorende documentatie in
+README/SETUP). De enige overgebleven manier om de Bol-feed te verversen is
+de Marketing API (OAuth over HTTPS via `BOL_FEED_PATH`), die zonder vast IP
+werkt en dus gewoon via de GitHub Actions-cron (`.github/workflows/
+refresh-data.yml`) kan draaien -- dat was al de aanbevolen route, dus
+functioneel verandert er niets.
+
 ## Niet gebouwd / bewust weggelaten
 
 - Geen cookiebanner, nieuwsbrief, blog -- expliciet niet gevraagd.
