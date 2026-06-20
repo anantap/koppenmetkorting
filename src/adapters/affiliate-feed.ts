@@ -58,7 +58,7 @@ export interface FeedConfig {
 export const FEED_CONFIGS: FeedConfig[] = [
   {
     shop: 'Drogist (NL)',
-    feedPath: process.env.FEED_DROGIST_URL ?? 'data/sample/drogist-sample.csv',
+    feedPath: process.env.FEED_DROGIST_URL || 'data/sample/drogist-sample.csv',
     delimiter: ';',
     columns: {
       title: 'productnaam',

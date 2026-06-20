@@ -63,7 +63,7 @@ export const bolAdapter: SourceAdapter = {
   name: SHOP_NAME,
 
   async fetch(): Promise<RawRow[]> {
-    const feedPath = process.env.BOL_FEED_PATH ?? 'data/sample/bol-sample.csv';
+    const feedPath = process.env.BOL_FEED_PATH || 'data/sample/bol-sample.csv';
     const csv = await readFeedSource(feedPath);
     return parseCSV(csv);
   },
